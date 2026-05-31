@@ -8,6 +8,7 @@ from tree_sitter import Language, Parser, Query
 from tree_sitter import Node as TreeSitterNode
 import tree_sitter_c_sharp
 import tree_sitter_cpp
+import tree_sitter_json
 import tree_sitter_python
 import tree_sitter_rust
 import tree_sitter_yaml
@@ -53,6 +54,14 @@ def init_yaml_tree_sitter() -> tuple[Parser, Query]:
 def init_rust_tree_sitter() -> tuple[Parser, Query]:
     parsed_language = Language(tree_sitter_rust.language())
     query = Query(parsed_language, utils.RUST_QUERY)
+    parser = Parser(parsed_language)
+    return parser, query
+
+
+@pytest.fixture(scope="session")
+def init_jsonc_tree_sitter() -> tuple[Parser, Query]:
+    parsed_language = Language(tree_sitter_json.language())
+    query = Query(parsed_language, utils.JSONC_QUERY)
     parser = Parser(parsed_language)
     return parser, query
 
@@ -363,6 +372,48 @@ def test_find_associated_scope_rust(code, result, init_rust_tree_sitter):
     assert node.text
     rust_def = node.text.decode("utf-8")
     assert result in rust_def
+
+
+@pytest.mark.parametrize(
+    ("code", "result"),
+    [
+        # leading comment is associated with the following key/value pair
+        (
+            b'{\n  // @req-id: need_001\n  "alpha": 1\n}\n',
+            '"alpha": 1',
+        ),
+        # inline comment is associated with the array item on the same row
+        (
+            b'{\n  "items": [\n    "first", // @req-id: need_001\n    "second"\n  ]\n}\n',
+            '"first"',
+        ),
+        # inline comment is associated with the pair on the same row
+        (
+            b'{\n  "alpha": 1, // @req-id: need_001\n  "beta": 2\n}\n',
+            '"alpha": 1',
+        ),
+        # block comment is associated with the following pair
+        (
+            b'{\n  /* @req-id: need_001 */\n  "beta": 2\n}\n',
+            '"beta": 2',
+        ),
+        # trailing comment falls back to the enclosing object
+        (
+            b'{\n  "alpha": 1\n  // @req-id: need_001\n}\n',
+            '"alpha"',
+        ),
+    ],
+)
+def test_find_associated_scope_jsonc(code, result, init_jsonc_tree_sitter):
+    parser, query = init_jsonc_tree_sitter
+    comments = utils.extract_comments(code, parser, query)
+    node: TreeSitterNode | None = utils.find_associated_scope(
+        comments[0], CommentType.jsonc
+    )
+    assert node
+    assert node.text
+    jsonc_structure = node.text.decode("utf-8")
+    assert result in jsonc_structure
 
 
 @pytest.mark.parametrize(

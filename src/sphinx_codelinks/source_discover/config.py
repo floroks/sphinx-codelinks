@@ -11,6 +11,7 @@ COMMENT_FILETYPE = {
     "cs": ["cs"],
     "yaml": ["yml", "yaml"],
     "rust": ["rs"],
+    "jsonc": ["jsonc", "json"],
 }
 
 
@@ -21,6 +22,8 @@ class CommentType(str, Enum):
     yaml = "yaml"
     # @Support Rust style comments, IMPL_RUST_1, impl, [FE_RUST];
     rust = "rust"
+    # @Support JSONC style comments, IMPL_JSONC_1, impl, [FE_JSONC];
+    jsonc = "jsonc"
 
 
 class SourceDiscoverSectionConfigType(TypedDict, total=False):
