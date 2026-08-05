@@ -53,7 +53,12 @@ def _build_oneline_style(config) -> OneLineCommentStyle:
         return OneLineCommentStyle()
     kwargs = {
         key: config[key]
-        for key in ("start_sequence", "end_sequence", "field_split_char")
+        for key in (
+            "start_sequence",
+            "end_sequence",
+            "field_split_char",
+            "description_position",
+        )
         if key in config
     }
     if "needs_fields" in config:

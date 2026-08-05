@@ -1,0 +1,21 @@
+{
+  "needs": [
+    {
+      "id": "IMPL_GO_MD",
+      "title": "MD Go",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_GO"
+        ]
+      },
+      "metadata": {
+        "description": "Uses ``ctx`` and is **safe**."
+      },
+      "line": 1
+    }
+  ],
+  "need_refs": [],
+  "marked_rst": [],
+  "warnings": []
+}

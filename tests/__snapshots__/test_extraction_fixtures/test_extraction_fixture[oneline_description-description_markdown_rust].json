@@ -1,0 +1,21 @@
+{
+  "needs": [
+    {
+      "id": "IMPL_RUST_MD",
+      "title": "MD Rust",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_RS"
+        ]
+      },
+      "metadata": {
+        "description": "Calls ``do_thing()`` and returns **fast**."
+      },
+      "line": 1
+    }
+  ],
+  "need_refs": [],
+  "marked_rst": [],
+  "warnings": []
+}

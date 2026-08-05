@@ -309,6 +309,7 @@ class SourceTracingDirective(SphinxDirective):
                     not in [
                         "title",
                         "type",
+                        "description",  # rendered as the need body content
                     ]  # title and type are mandatory for add_need()
                 }
 
@@ -316,6 +317,10 @@ class SourceTracingDirective(SphinxDirective):
                     kwargs[local_url_field] = local_link_name
                 if remote_url_field and remote_link_name is not None:
                     kwargs[remote_url_field] = remote_link_name
+
+                description = oneline_need.need.get("description")
+                if description:
+                    kwargs["content"] = str(description)
 
                 oneline_needs: list[nodes.Node] = add_need(
                     app=self.env.app,  # The Sphinx application object

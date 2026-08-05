@@ -522,6 +522,22 @@ def test_oneline_parser_default_config_negative(
                 "Missing required fields: ['title', 'type']",
             ],
         ),
+        (
+            OneLineCommentStyle(
+                start_sequence="[[",
+                end_sequence="]]",
+                field_split_char=",",
+                description_position="sideways",  # invalid enum value
+                needs_fields=[
+                    {"name": "title"},
+                    {"name": "id"},
+                    {"name": "type", "default": "impl"},
+                ],
+            ),
+            [
+                "Schema validation error in field 'description_position': 'sideways' is not one of ['none', 'above', 'below']"
+            ],
+        ),
     ],
 )
 def test_oneline_schema_validator_negative(oneline_config, result):

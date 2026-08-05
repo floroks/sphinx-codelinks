@@ -1,0 +1,21 @@
+{
+  "needs": [
+    {
+      "id": "IMPL_PY_BELOW",
+      "title": "Py Below",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_PY"
+        ]
+      },
+      "metadata": {
+        "description": "Description line for python."
+      },
+      "line": 1
+    }
+  ],
+  "need_refs": [],
+  "marked_rst": [],
+  "warnings": []
+}

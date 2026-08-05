@@ -1,0 +1,35 @@
+{
+  "needs": [
+    {
+      "id": "IMPL_FIRST",
+      "title": "First",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_A"
+        ]
+      },
+      "metadata": {
+        "description": "Description of first."
+      },
+      "line": 2
+    },
+    {
+      "id": "IMPL_SECOND",
+      "title": "Second",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_B"
+        ]
+      },
+      "metadata": {
+        "description": "Description of second."
+      },
+      "line": 4
+    }
+  ],
+  "need_refs": [],
+  "marked_rst": [],
+  "warnings": []
+}

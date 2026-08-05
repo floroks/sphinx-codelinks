@@ -1,0 +1,21 @@
+{
+  "needs": [
+    {
+      "id": "IMPL_RUST_MIXED",
+      "title": "Mixed Rust",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_RS"
+        ]
+      },
+      "metadata": {
+        "description": "Doc-style below line.\nPlain below line."
+      },
+      "line": 1
+    }
+  ],
+  "need_refs": [],
+  "marked_rst": [],
+  "warnings": []
+}

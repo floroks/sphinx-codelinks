@@ -1,0 +1,163 @@
+description_below_cpp:
+  lang: cpp
+  config:
+    description_position: below
+  extract: [oneline]
+  source: |
+    /*
+     * @Below Title, IMPL_BELOW, impl, [REQ_1]
+     * This is the description.
+     * It spans two lines.
+     */
+    void f() {}
+
+description_above_cpp:
+  lang: cpp
+  config:
+    description_position: above
+  extract: [oneline]
+  source: |
+    /*
+     * This is the description above.
+     * Second line of it.
+     * @Above Title, IMPL_ABOVE, impl, [REQ_2]
+     */
+    void g() {}
+
+description_none_cpp:
+  lang: cpp
+  config:
+    description_position: none
+  extract: [oneline]
+  source: |
+    /*
+     * @None Title, IMPL_NONE, impl, [REQ_3]
+     * This text must be ignored.
+     */
+    void h() {}
+
+description_below_python:
+  lang: python
+  config:
+    description_position: below
+  extract: [oneline]
+  source: |
+    # @Py Below, IMPL_PY_BELOW, impl, [REQ_PY]
+    # Description line for python.
+    def f():
+        pass
+
+description_stops_at_next_marker:
+  lang: cpp
+  config:
+    description_position: below
+  extract: [oneline]
+  source: |
+    /*
+     * @First, IMPL_FIRST, impl, [REQ_A]
+     * Description of first.
+     * @Second, IMPL_SECOND, impl, [REQ_B]
+     * Description of second.
+     */
+    void k() {}
+
+description_above_rust_line_comments:
+  lang: rust
+  config:
+    description_position: above
+  extract: [oneline]
+  source: |
+    /// doc comment ignored
+    ///
+    // Uses the FOSS CDAs to provide the version endpoints
+    // @Above Rust, IMPL_RUST_ABOVE, impl, [REQ_RS]
+    fn f() {}
+
+description_below_rust_line_comments:
+  lang: rust
+  config:
+    description_position: below
+  extract: [oneline]
+  source: |
+    // @Below Rust, IMPL_RUST_BELOW, impl, [REQ_RS]
+    // First description line.
+    // Second description line.
+    fn g() {}
+
+description_mixed_slashes_rust:
+  lang: rust
+  config:
+    description_position: below
+  extract: [oneline]
+  source: |
+    // @Mixed Rust, IMPL_RUST_MIXED, impl, [REQ_RS]
+    /// Doc-style below line.
+    // Plain below line.
+    fn h() {}
+
+description_mixed_slashes_above_rust:
+  lang: rust
+  config:
+    description_position: above
+  extract: [oneline]
+  source: |
+    /// Doc-style above line.
+    // Plain above line.
+    // @Mixed Above, IMPL_RUST_MIXED_ABOVE, impl, [REQ_RS]
+    fn i() {}
+
+# Rust comments are configured as Markdown, so inline markup in the
+# description is converted to RST (e.g. `code` -> ``code``).
+description_markdown_rust:
+  lang: rust
+  config:
+    description_position: below
+  extract: [oneline]
+  source: |
+    // @MD Rust, IMPL_RUST_MD, impl, [REQ_RS]
+    // Calls `do_thing()` and returns **fast**.
+    fn j() {}
+
+# Go comments are also configured as Markdown.
+description_markdown_go:
+  lang: go
+  config:
+    description_position: below
+  extract: [oneline]
+  source: |
+    // @MD Go, IMPL_GO_MD, impl, [REQ_GO]
+    // Uses `ctx` and is **safe**.
+    func k() {}
+
+# C++ is NOT configured as Markdown, so backticks are preserved verbatim.
+description_markdown_ignored_cpp:
+  lang: cpp
+  config:
+    description_position: below
+  extract: [oneline]
+  source: |
+    /*
+     * @Plain Cpp, IMPL_CPP_PLAIN, impl, [REQ_CPP]
+     * Calls `do_thing()` and returns **fast**.
+     */
+    void l() {}
+
+# Titles are also converted for Markdown languages (inline markup only).
+title_markdown_rust:
+  lang: rust
+  config:
+    description_position: none
+  extract: [oneline]
+  source: |
+    // @Handles `ctx` safely, IMPL_RUST_TITLE, impl, [REQ_RS]
+    fn m() {}
+
+# C++ title backticks are preserved verbatim (not Markdown-configured).
+title_markdown_ignored_cpp:
+  lang: cpp
+  config:
+    description_position: none
+  extract: [oneline]
+  source: |
+    // @Handles `ctx` safely, IMPL_CPP_TITLE, impl, [REQ_CPP]
+    void n() {}

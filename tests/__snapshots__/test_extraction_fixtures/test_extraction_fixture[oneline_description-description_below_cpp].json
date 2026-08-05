@@ -1,0 +1,21 @@
+{
+  "needs": [
+    {
+      "id": "IMPL_BELOW",
+      "title": "Below Title",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_1"
+        ]
+      },
+      "metadata": {
+        "description": "This is the description.\nIt spans two lines."
+      },
+      "line": 2
+    }
+  ],
+  "need_refs": [],
+  "marked_rst": [],
+  "warnings": []
+}

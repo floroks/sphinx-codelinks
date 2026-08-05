@@ -44,6 +44,11 @@ dependencies = [
 # 17 and 18 (the engine only uses get_all_skipped_ranges + comment tokenization,
 # stable since long before 16), so support older toolchains too. No upper bound.
 libclang = ["libclang>=16"]
+# Enables Markdown->RST conversion of one-line marker descriptions for
+# languages whose comments are authored in Markdown (see
+# sphinx_codelinks.analyse.markup_format). Optional so projects that do
+# not use Markdown comments avoid the extra dependency.
+markdown = ["m2r2>=0.3.4"]
 
 [build-system]
 requires = ["flit_core >=3.4,<4"]
@@ -60,6 +65,7 @@ testing = [
   "toml>=0.10.2",
   "furo>=2024.5.6",
   "libclang>=18",
+  "m2r2>=0.3.4",
 ]
 docs = [
   "furo>=2024.5.6",
@@ -131,6 +137,9 @@ force-sort-within-sections = true
 "src/sphinx_codelinks/cmd.py" = [
   "PLC0415", # import on top - only import relevant modules by use cases
 ]
+"src/sphinx_codelinks/analyse/markup_format.py" = [
+  "PLC0415", # import-outside-top-level - lazy import of optional 'm2r2' dependency
+]
 
 [tool.mypy]
 exclude = ["tests/", "dist/", "docs/_build/", "docs/conf.py"]
@@ -156,7 +165,7 @@ mypy_path = "typings"
 
 [[tool.mypy.overrides]]
 # clang.cindex ships no type stubs / py.typed; the libclang engine wraps it.
-module = ["licensing.*", "tomlkit.*", "clang.*"]
+module = ["licensing.*", "tomlkit.*", "clang.*", "m2r2.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]

@@ -1,0 +1,21 @@
+{
+  "needs": [
+    {
+      "id": "IMPL_RUST_BELOW",
+      "title": "Below Rust",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_RS"
+        ]
+      },
+      "metadata": {
+        "description": "First description line.\nSecond description line."
+      },
+      "line": 1
+    }
+  ],
+  "need_refs": [],
+  "marked_rst": [],
+  "warnings": []
+}

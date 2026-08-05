@@ -177,11 +177,12 @@ class FieldConfig(TypedDict, total=False):
     default: str | list[str] | None
 
 
-class OneLineCommentStyleType(TypedDict):
+class OneLineCommentStyleType(TypedDict, total=False):
     start_sequence: str
     end_sequence: str
     field_split_char: str
     needs_fields: list[FieldConfig]
+    description_position: Literal["none", "above", "below"]
 
 
 @dataclass
@@ -260,6 +261,18 @@ class OneLineCommentStyle:
             },
         },
     )
+
+    description_position: Literal["none", "above", "below"] = field(
+        default="none",
+        metadata={"schema": {"type": "string", "enum": ["none", "above", "below"]}},
+    )
+    """Where to capture the item description relative to the one-line marker.
+
+    ``none`` disables description capture. ``above`` uses the contiguous
+    comment lines directly above the marker line, ``below`` uses the
+    contiguous comment lines directly below it. The captured text becomes
+    the body/content of the generated need.
+    """
 
     @classmethod
     def apply_needs_field_default(cls, given_fields: list[FieldConfig]) -> None:

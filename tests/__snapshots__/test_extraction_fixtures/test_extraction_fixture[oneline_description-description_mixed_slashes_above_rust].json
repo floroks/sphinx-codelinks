@@ -1,0 +1,21 @@
+{
+  "needs": [
+    {
+      "id": "IMPL_RUST_MIXED_ABOVE",
+      "title": "Mixed Above",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_RS"
+        ]
+      },
+      "metadata": {
+        "description": "Doc-style above line.\nPlain above line."
+      },
+      "line": 3
+    }
+  ],
+  "need_refs": [],
+  "marked_rst": [],
+  "warnings": []
+}

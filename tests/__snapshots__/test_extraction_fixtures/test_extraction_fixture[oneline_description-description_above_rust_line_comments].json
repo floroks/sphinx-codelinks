@@ -1,0 +1,21 @@
+{
+  "needs": [
+    {
+      "id": "IMPL_RUST_ABOVE",
+      "title": "Above Rust",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_RS"
+        ]
+      },
+      "metadata": {
+        "description": "Uses the FOSS CDAs to provide the version endpoints"
+      },
+      "line": 4
+    }
+  ],
+  "need_refs": [],
+  "marked_rst": [],
+  "warnings": []
+}

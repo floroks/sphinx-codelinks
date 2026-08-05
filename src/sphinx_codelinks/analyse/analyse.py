@@ -7,6 +7,7 @@ from typing import Any, TypedDict, cast
 from tree_sitter import Node as TreeSitterNode
 
 from sphinx_codelinks.analyse import utils
+from sphinx_codelinks.analyse.markup_format import convert_markup, format_for_language
 from sphinx_codelinks.analyse.models import (
     MarkedContentType,
     MarkedRst,
@@ -34,6 +35,145 @@ logger = get_logger(__name__)
 def _count(n: int, noun: str) -> str:
     """Format ``n noun`` with a naive (append-s) plural for progress summaries."""
     return f"{n} {noun}" if n == 1 else f"{n} {noun}s"
+
+
+# Leading comment decoration sequences stripped from description lines.
+_DESCRIPTION_LEADING_SEQUENCES = ["///", "//", "*", "#", "--"]
+
+
+def _clean_description_line(line: str) -> str:
+    """Strip comment decoration and surrounding whitespace from a line."""
+    stripped = line.strip()
+    # Remove block-comment delimiters that may appear on the opening/closing
+    # lines of a ``/* ... */`` comment.
+    if stripped.startswith("/*"):
+        stripped = stripped[len("/*") :].strip()
+    if stripped.endswith("*/"):
+        stripped = stripped[: -len("*/")].strip()
+    for sequence in _DESCRIPTION_LEADING_SEQUENCES:
+        if stripped.startswith(sequence):
+            stripped = stripped[len(sequence) :].strip()
+            break
+    return stripped
+
+
+def extract_description(
+    lines: list[str],
+    is_marker_line: list[bool],
+    marker_idx: int,
+    position: str,
+) -> str:
+    """Extract the description block adjacent to a one-line marker.
+
+    The description is the contiguous block of non-marker comment lines
+    directly ``above`` or ``below`` the marker line. Collection stops at the
+    next marker line, at a blank line, or at the comment boundary. Comment
+    decoration and surrounding whitespace are stripped from each line.
+
+    :param lines: All lines of the comment (with trailing newlines).
+    :param is_marker_line: Per-line flag indicating a marker line.
+    :param marker_idx: Index of the current marker line in ``lines``.
+    :param position: One of ``none``, ``above`` or ``below``.
+    :return: The joined description text, or an empty string.
+    """
+    if position not in ("above", "below"):
+        return ""
+
+    collected: list[str] = []
+    if position == "below":
+        idx = marker_idx + 1
+        step = 1
+    else:
+        idx = marker_idx - 1
+        step = -1
+
+    while 0 <= idx < len(lines):
+        if is_marker_line[idx]:
+            break
+        cleaned = _clean_description_line(lines[idx])
+        if not cleaned:
+            # stop at the first blank line to keep descriptions tightly scoped
+            break
+        collected.append(cleaned)
+        idx += step
+
+    if position == "above":
+        collected.reverse()
+
+    return UNIX_NEWLINE.join(collected)
+
+
+def _is_comment_node(node: TreeSitterNode | None) -> bool:
+    """Return True if the tree-sitter node represents a comment."""
+    if node is None:
+        return False
+    return "comment" in node.type
+
+
+def extract_description_from_siblings(
+    node: TreeSitterNode,
+    position: str,
+    oneline_comment_style: OneLineCommentStyle,
+) -> str:
+    """Extract a description from adjacent sibling comment nodes.
+
+    Many languages (e.g. Rust, C++, Go) model consecutive ``//`` line
+    comments as separate sibling nodes rather than a single multi-line
+    comment. ``extract_description`` only sees the text of the current
+    comment node, so it cannot reach those neighbors. This helper walks the
+    immediately adjacent sibling comment nodes directly ``above`` or
+    ``below`` the marker node and collects their cleaned text.
+
+    Collection stops when the next sibling is not a comment, is not on the
+    immediately adjacent row, is itself a marker line, or is blank.
+
+    :param node: The tree-sitter comment node containing the marker.
+    :param position: One of ``none``, ``above`` or ``below``.
+    :param oneline_comment_style: Style used to detect neighboring markers.
+    :return: The joined description text, or an empty string.
+    """
+    if position not in ("above", "below"):
+        return ""
+
+    collected: list[str] = []
+    if position == "below":
+        current = node.next_named_sibling
+        expected_row = node.start_point.row + 1
+    else:
+        current = node.prev_named_sibling
+        expected_row = node.start_point.row - 1
+
+    while current is not None and _is_comment_node(current):
+        text = current.text.decode("utf-8") if current.text else ""
+        # A single-line comment node may still report ``end_point.row`` one
+        # greater than ``start_point.row`` because it absorbs the trailing
+        # newline (e.g. Rust ``///`` doc comments). Derive the visible span
+        # from the text itself so such nodes are not treated as multi-line.
+        visible_rows = len(text.rstrip(UNIX_NEWLINE).splitlines()) or 1
+        # Only single-line neighbors on the immediately adjacent row belong
+        # to the description block; anything else ends it.
+        if visible_rows != 1:
+            break
+        if current.start_point.row != expected_row:
+            break
+        # A neighboring marker line terminates the description block.
+        if oneline_parser(text, oneline_comment_style) is not None:
+            break
+        cleaned = _clean_description_line(text)
+        if not cleaned:
+            break
+        collected.append(cleaned)
+        if position == "below":
+            current = current.next_named_sibling
+            expected_row += 1
+        else:
+            current = current.prev_named_sibling
+            expected_row -= 1
+
+    if position == "above":
+        collected.reverse()
+
+    return UNIX_NEWLINE.join(collected)
 
 
 class AnalyseWarningType(TypedDict):
@@ -315,7 +455,14 @@ class SourceAnalyse:
             # single line comment has no newline char in the extracted comment
             lines[0] = f"{lines[0]}{UNIX_NEWLINE}"
 
-        for line in lines:
+        # Pre-classify each line as a marker line (has a valid or invalid
+        # marker) or a plain text line. This is needed to bound description
+        # blocks by neighboring markers.
+        is_marker_line = [
+            oneline_parser(line, oneline_comment_style) is not None for line in lines
+        ]
+
+        for line_idx, line in enumerate(lines):
             resolved = oneline_parser(line, oneline_comment_style)
             if not resolved:
                 row_offset += 1
@@ -335,6 +482,31 @@ class SourceAnalyse:
                 self.oneline_warnings.append(warning)
                 row_offset += 1
                 continue
+            # The markup language of comment content depends on the source
+            # language (e.g. Markdown for Rust/Go). Convert the title and
+            # description to RST when configured, so Sphinx-Needs renders them
+            # correctly regardless of the file's comment convention.
+            markup_format = format_for_language(self.analyse_config.comment_type)
+            title = resolved.get("title")
+            if isinstance(title, str) and title:
+                resolved["title"] = convert_markup(title, markup_format)
+            description = extract_description(
+                lines,
+                is_marker_line,
+                line_idx,
+                oneline_comment_style.description_position,
+            )
+            if not description:
+                # Consecutive single-line comments (e.g. Rust/C++ ``//``)
+                # are separate sibling nodes, so the description may live in
+                # an adjacent comment node rather than within this one.
+                description = extract_description_from_siblings(
+                    src_comment.node,
+                    oneline_comment_style.description_position,
+                    oneline_comment_style,
+                )
+            if description:
+                resolved["description"] = convert_markup(description, markup_format)
             yield resolved, row_offset
             row_offset += 1
 

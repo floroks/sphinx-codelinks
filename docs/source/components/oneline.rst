@@ -240,3 +240,76 @@ To have a backslash ``\`` as a literal in the value, use ``\\`` as shown in the 
          :links: [SPEC,_1]
 
 .. caution:: Field values can never contain any newline characters ``\r`` or ``\n``.
+
+Description
+~~~~~~~~~~~
+
+By default, only the text inside the one-line marker is used. Set
+``description_position`` to ``above`` or ``below`` to additionally use the
+surrounding comment text as the ``need item``'s description (body/content).
+
+The description is the contiguous block of comment lines directly above or
+below the marker line. Collection stops at the next marker line, a blank line,
+or the boundary of the comment. Comment decoration (e.g. ``*``, ``//``, ``#``)
+and surrounding whitespace are stripped from each line.
+
+.. tabs::
+
+   .. code-tab:: toml
+
+      [codelinks.projects.my_project.analyse.oneline_comment_style]
+      description_position = "below"
+
+   .. code-tab:: c
+
+      /*
+       * @Function Bar, IMPL_4, impl, [SPEC_1]
+       * This function does the thing.
+       * It has a multi-line description.
+       */
+
+   .. code-tab:: rst
+
+      .. impl:: Function Bar
+         :id: IMPL_4
+         :links: SPEC_1
+
+         This function does the thing.
+         It has a multi-line description.
+
+With ``description_position = "above"`` the description block is taken from the
+comment lines immediately preceding the marker line instead.
+
+.. note:: Setting ``description_position = "none"`` (the default) disables
+   description capture, preserving the original behavior.
+
+Comment markup conversion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The markup language used inside source-code comments depends on the
+programming language. Sphinx-Needs renders a need's title and body as
+reStructuredText (RST), so content authored in another markup (e.g. Markdown)
+would otherwise be interpreted as RST and render incorrectly.
+
+For languages whose comments are conventionally written in Markdown, the
+captured one-line marker content — both the **title** and the **description** —
+is automatically converted from Markdown to RST. This is controlled by a
+*static* language mapping in ``sphinx_codelinks.analyse.markup_format``
+(``LANGUAGE_MARKUP_FORMATS``) and is **not** user-configurable. Languages not
+listed there default to ``plain`` (no conversion), preserving the original
+behavior.
+
+Currently, ``rust`` and ``go`` are mapped to Markdown. For these languages a
+description such as ``Calls `do_thing()` and returns **fast**.`` is converted to
+the RST equivalent ``Calls ``do_thing()`` and returns **fast**.`` (the same
+inline conversion applies to titles).
+
+Markdown conversion requires the optional ``m2r2`` dependency. Install it with:
+
+.. code-block:: bash
+
+   pip install sphinx-codelinks[markdown]
+
+If ``m2r2`` is not installed, the content is used verbatim and a warning is
+emitted. The mechanism is extensible: additional markup formats can be added by
+extending ``MarkupFormat`` and the converter registry in that module.

@@ -520,6 +520,11 @@ Enables the use of simplified :ref:`one-line comment patterns <oneline>` to repr
 - ``end_sequence`` - Character(s) that end a one-line comment pattern (typically line ending)
 - ``field_split_char`` - Character used to separate fields within the comment
 - ``needs_fields`` - List of field definitions for extracting need information
+- ``description_position`` - Where to capture the item description relative to the
+  marker line. One of ``none`` (default, disabled), ``above`` or ``below``. When
+  set, the contiguous comment lines directly above/below the marker line are used
+  as the body/content of the generated need. Collection stops at the next marker
+  line, a blank line, or the comment boundary.
 
 **Example usage:**
 

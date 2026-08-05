@@ -1,0 +1,21 @@
+{
+  "needs": [
+    {
+      "id": "IMPL_CPP_PLAIN",
+      "title": "Plain Cpp",
+      "type": "impl",
+      "links": {
+        "links": [
+          "REQ_CPP"
+        ]
+      },
+      "metadata": {
+        "description": "Calls `do_thing()` and returns **fast**."
+      },
+      "line": 2
+    }
+  ],
+  "need_refs": [],
+  "marked_rst": [],
+  "warnings": []
+}
